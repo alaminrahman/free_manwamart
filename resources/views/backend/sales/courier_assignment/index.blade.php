@@ -1,4 +1,4 @@
-@extends('backend.layouts.app')
+Invoice No.@extends('backend.layouts.app')
 
 <style>
 table {

@@ -193,9 +193,11 @@
                 type:"GET",
                 data:{'order':query},
                 success:function (data) {
+
                     $('#order_list').html(data);
 
                     console.log(data)
+
                 }
             })
             // end of ajax call
@@ -208,7 +210,7 @@
 
     function getOrder(order_id){
         var courier_name = $('#courier').val();
-        var unique_num = 1;
+        var unique_num = order_id;
 
         $.ajax({
             url:'{{ route("getOrder") }}',
@@ -216,8 +218,10 @@
                 order_id: order_id,
                 courier_name:courier_name,
                 unique_num: unique_num,
+
             },
             success:function(data){
+
                 $('#show').append(data);
                 console.log('Data Found!')
             },
@@ -227,11 +231,12 @@
         })
     }
 
-    function getPrice(){
-        var recipient_city = $('#city_id').val();
-        var recipient_zone = $('#zone_id').val();
-        var weight = $('#weight').val();
-
+    function getPrice(order_id){
+        var recipient_city = $('#city_id_'+order_id).val();
+        var recipient_zone = $('#zone_id_'+order_id).val();
+        var weight = $('#weight_'+order_id).val();
+       //var orderNumber= $(this).attr('orderNumber');
+// alert(order_id);
         $.ajax({
             url:'{{ route("getPrice") }}',
             data:{
@@ -240,11 +245,10 @@
                 weight:weight,
             },
             success:function(data){
-                let one = 0;
-                one += 1;
+// alert(data.data.price)
 
-                $('#single_price'+one+'').text(data.data.price);
-                $('[name=single_price]').val(data.data.price);
+                //$('#single_price'+one+'').text(data.data.price);
+                $('#single_price_'+order_id).val(data.data.price);
                 console.log('Price Found!')
             },
             error:function(){

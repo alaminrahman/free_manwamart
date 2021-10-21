@@ -825,18 +825,19 @@ class OrderController extends Controller
      public function getOrder(Request $request)
      {
 
-        if($request->unique_num === 1){
-            $unique_num = $request->unique_num;
-        }else{
-            session()->put('num', 1);
-            $unique_num = session()->get('num');
-
-            for($i = 0; $i <= $unique_num; $i++){
-                $unique_num += 1;
-                dd($unique_num);
-            }
-            // dd($unique_num);
-        }
+//        if($request->unique_num === 1){
+//            $unique_num = $request->unique_num;
+//        }else{
+//            session()->put('num', 1);
+//            $unique_num = session()->get('num');
+//
+//            for($i = 0; $i <= $unique_num; $i++){
+//                $unique_num += 1;
+//                //dd($unique_num);
+//            }
+//            // dd($unique_num);
+//        }
+//
 
 
         $order = Order::with(['user', 'orderDetails'])->where('code', $request->order_id)->first();
@@ -865,7 +866,7 @@ class OrderController extends Controller
             $html .='<td scope="row">0'. $order->user->phone.'</td>';
             $html .='<td scope="row">';
             $html .= '
-            <select class="form-control valid" required="" name="weight" id="weight" aria-required="true" aria-invalid="false">
+            <select  class="form-control valid" required="" name="weight" id="weight_'.$request->order_id.'" aria-required="true" aria-invalid="false">
             <option selected="selected">Please Select</option>
                 <option value="0.5">0.5 KG</option>
                 <option value="1">1 KG</option>
@@ -883,7 +884,7 @@ class OrderController extends Controller
 
             $html .='</td>';
             $html .='<td scope="row">
-                <select class="form-control" name="city" id="city_id">';
+                <select class="form-control" name="city" id="city_id_'.$request->order_id.'">';
                 foreach($result_city->data->data as $key => $item){
                     $html .= '<option value="'.$item->city_id.'" >'.$item->city_name.'</option>';
                 }
@@ -891,7 +892,7 @@ class OrderController extends Controller
             $html .=' </select></td>';
 
             $html .='<td scope="row">
-                <select class="form-control" name="zone" id="zone_id" onchange="getPrice()">';
+                <select class="form-control" name="zone" id="zone_id_'.$request->order_id.'" orderNumber="'.$request->order_id.'" onchange="getPrice('.$request->order_id.')">';
                 foreach($zone->data->data as $key => $item){
                     $html .= '<option value="'.$item->zone_id.'" >'.$item->zone_name.'</option>';
                 }
@@ -899,16 +900,15 @@ class OrderController extends Controller
             $html .=' </select></td>';
 
             $html .='<td scope="row">
-                <select class="form-control" name="area" id="area_id">';
+                <select class="form-control" name="area" id="area_id_'.$request->order_id.'">';
                 foreach($area->data->data as $key => $item){
                     $html .= '<option value="'.$item->area_id.'" >'.$item->area_name.'</option>';
                 }
 
             $html .=' </select></td>';
-
-            $html .=' <td scope="row" class="text-right">TK. <span id="single_price'.$unique_num.'">';
+            $html .=' <td scope="row" class="text-right">TK. <span id="single_price">';
             $html .= 0;
-            $html .='</span> <input type="text" name="single_price" value=""></td>';
+            $html .='</span> <input type="text" name="single_price_'.$request->order_id.'" id="single_price_'.$request->order_id.'" ></td>';
 
 
             $html .='<td scope="row" class="text-center">'.$order->orderDetails->sum('quantity').'</td>';
@@ -924,7 +924,7 @@ class OrderController extends Controller
      public function get_pathao_price(Request $request)
     {
         $service_charge = $this->get_pathao_service_charge($request->weight, $request->recipient_city, $request->recipient_zone);
-
+//dd($service_charge);
         return $service_charge;
     }
 
