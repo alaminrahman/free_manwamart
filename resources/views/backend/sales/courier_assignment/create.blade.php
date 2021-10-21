@@ -17,6 +17,9 @@
     <div class="row">
         <div class="col-md-12">
 
+            <form action="{{ route('courier.assined.store') }}" method="POST">
+                @csrf
+
             <div class="card">
                 <div class="card-header">
                     <h3>Assign courier</h3>
@@ -30,8 +33,8 @@
                     <div class="row">
                         <div class="col-md-2">
                             <div class="form-group">
-                                <label for="exampleFormControlInput1"><b>Date:*</b></label>
-                                <input type="date" class="form-control" id="todays-date">
+                                <label for="todays-date"><b>Date:*</b></label>
+                                <input type="date" class="form-control" id="todays-date" name="date">
                             </div>
                         </div>
 
@@ -91,7 +94,7 @@
                     <div class="row">
                         <div class="col-md-12">
 
-                            <table class="table">
+                            <table class="table" style="font-size: 10px !important;">
                                 <thead>
                                   <tr>
                                     <th scope="col">Invoice No.</th>
@@ -127,18 +130,18 @@
                                     <div class="row">
 
                                         <div class="col-md-12">
-                                            <p>Total Amount: TK. <span style="margin-left: 2.6rem;" id="price">0</span></p>
-                                            <input type="hidden" name="total_cost" value="">
+                                            <p>Total Amount: TK. <span style="margin-left: 1rem;" id="total_cost_show">0</span></p>
+                                            <input type="hidden" name="total_cost" id="total_cost" value="">
                                         </div>
 
                                         <div class="col-md-12">
-                                            <p>Total parcel:<span style="margin-left: 3.3rem;">0</span></p>
-                                            <input type="hidden" name="total_parcel" value="">
+                                            <p>Total parcel:<span style="margin-left: 1rem;" id="total_parcel_show">0</span></p>
+                                            <input type="hidden" name="total_parcel" id="total_parcel" value="">
                                         </div>
 
                                         <div class="col-md-12">
-                                            <p>Total items:<span style="margin-left: 3.6rem;">0</span></p>
-                                            <input type="hidden" name="total_item" value="">
+                                            <p>Total items:<span style="margin-left: 1rem;" id="total_item_show">0</span></p>
+                                            <input type="hidden" name="total_item" id="total_item" value="">
                                         </div>
                                     </div>
                                 </div>
@@ -147,7 +150,7 @@
 
                               </div><!--End Additional-->
 
-                            <input type="submit" form="myform" style="float: right" class="btn btn-rounded btn-primary ml-3" value="Save">
+                            <button type="submit" style="float: right" class="btn btn-rounded btn-primary ml-3" >Save</button>
 
 
 
@@ -157,6 +160,7 @@
                 </div><!--End Card body-->
             </div><!--End Card-->
 
+            </form>
 
         </div><!--End Col-->
     </div><!--End Row-->
@@ -193,59 +197,90 @@
                 type:"GET",
                 data:{'order':query},
                 success:function (data) {
+
                     $('#order_list').html(data);
 
                     console.log(data)
+
                 }
             })
             // end of ajax call
         });
 
-        $('#order_list').html('<li></li>');
+
 
     });
 
-
-    function getOrder(order_id){
-        var courier_name = $('#courier').val();
-        var unique_num = 1;
-
-        $.ajax({
-            url:'{{ route("getOrder") }}',
-            data:{
-                order_id: order_id,
-                courier_name:courier_name,
-                unique_num: unique_num,
-            },
-            success:function(data){
-                $('#show').append(data);
-                console.log('Data Found!')
-            },
-            error:function(){
-                console.log('Data not Found!')
-            }
-        })
+    function clearSearResultItem(){
+        $('#order_list').html('');
     }
 
-    function getPrice(){
-        var recipient_city = $('#city_id').val();
-        var recipient_zone = $('#zone_id').val();
-        var weight = $('#weight').val();
+    function clearSearchKeyword(){
+        $('#order').val('');
+    }
+
+
+        function getOrder(order_id){
+            var courier_name = $('#courier').val();
+            var unique_num = order_id;
+
+            var recipient_city = $('#city_id_'+order_id).val();
+            var recipient_zone = $('#zone_id_'+order_id).val();
+
+            if(courier_name == 'pathao'){
+                $.ajax({
+                    url:'{{ route("getOrder") }}',
+                    data:{
+                        order_id: order_id,
+                        courier_name:courier_name,
+                        unique_num: unique_num,
+
+                    },
+                    success:function(data){
+
+                        $('#show').append(data);
+                        console.log('Data Found!')
+
+                        clearSearResultItem();
+                        clearSearchKeyword();
+                    },
+                    error:function(){
+                        console.log('Data not Found!')
+                    }
+                })
+
+            }else{
+                alert('Please Select One Courier Services!');
+            }
+        }
+
+
+
+
+
+    function getPrice(order_id){
+        var recipient_city = $('#city_id_'+order_id).val();
+        var recipient_zone = $('#zone_id_'+order_id).val();
+        var weight = $('#weight_'+order_id).val();
+       //var orderNumber= $(this).attr('orderNumber');
+       var order_id = order_id;
 
         $.ajax({
             url:'{{ route("getPrice") }}',
             data:{
+                order_id:order_id,
                 recipient_city: recipient_city,
                 recipient_zone:recipient_zone,
                 weight:weight,
             },
             success:function(data){
-                let one = 0;
-                one += 1;
+                $('.single_price_'+order_id).text(data.total_price);
+                $('#single_price_'+order_id).val(data.total_price);
 
-                $('#single_price'+one+'').text(data.data.price);
-                $('[name=single_price]').val(data.data.price);
+                row_total_price();
+
                 console.log('Price Found!')
+                console.log(data)
             },
             error:function(){
                 console.log('Data not Found!')
@@ -254,16 +289,26 @@
 
     }
 
-    // $(document).ready(function () {
+    function row_total_price(){
+        var total = 0;
+        $('.prices').each(function(){
+            total += parseFloat($(this).val());  // Or this.innerHTML, this.innerText
+        });
 
-    //     $('#zone_id').on('change', function(){
-    //         var zone_id = $(this).val();
-    //         var city_id = $('#city_id').val();
+        var count = $('#show tr').length;
 
-    //         alert(city_id);
-    //     })
+        $('#total_parcel').val(count)
+        $('#total_parcel_show').text(count)
 
-    // });
+        $('#total_item').val(count)
+        $('#total_item_show').text(count)
+
+        $('#total_cost').val(total);
+        $('#total_cost_show').text(total);
+
+        console.log(total);
+    }
+
 
 </script>
 @endsection

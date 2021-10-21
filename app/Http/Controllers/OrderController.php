@@ -32,6 +32,8 @@ use CoreComponentRepository;
 use App\Utility\SmsUtility;
 use App\Models\Courier;
 use App\Traits\BackendHelper;
+use App\Models\CourierAssigned;
+use App\Models\CourierAssignedProduct;
 
 class OrderController extends Controller
 {
@@ -779,8 +781,10 @@ class OrderController extends Controller
     }
 
     public function courier_assignment_index(){
-
-     return view('backend.sales.courier_assignment.index');
+        $data['courier_assigned'] = CourierAssigned::with(['courier_assigned_product', 'create_by'])->latest()->get();
+        // dd( $data['courier_assigned']);
+        // CourierAssignedProduct
+        return view('backend.sales.courier_assignment.index', $data);
 
      }//end method
 
@@ -792,17 +796,26 @@ class OrderController extends Controller
 
     public function search(Request $request){
 
+
+
         if($request->order > 0) {
 
             $data = Order::where('code', 'LIKE', $request->order.'%')
                     ->orderby('id','desc')
                     ->get();
+
             $output = '';
 
             if (count($data)>0) {
                 $output = '<ul class="list-group" id="result" style="display: block; position: relative; z-index: 1;">';
                 foreach ($data as $row){
-                    $output .= '<li class="list-group-item" onclick="getOrder('.$row->code.')">'.$row->code.'</li>';
+                    if($row->is_courier_assigned ==1){
+                        $msg = "Already Assigned";
+                    }else{
+                        $msg = "New";
+                    }
+
+                    $output .= '<li class="list-group-item"  onclick="getOrder('.$row->code.')" >'.$row->code.'('.$msg.')</li>';
                 }
                 $output .= '</ul>';
             }
@@ -825,25 +838,11 @@ class OrderController extends Controller
      public function getOrder(Request $request)
      {
 
-        if($request->unique_num === 1){
-            $unique_num = $request->unique_num;
-        }else{
-            session()->put('num', 1);
-            $unique_num = session()->get('num');
-
-            for($i = 0; $i <= $unique_num; $i++){
-                $unique_num += 1;
-                dd($unique_num);
-            }
-            // dd($unique_num);
-        }
-
-
         $order = Order::with(['user', 'orderDetails'])->where('code', $request->order_id)->first();
 
         if($request->courier_name){
 
-            $result_city = $this->get_pathao_city();
+            $result_city = $this->get_pathao_city(1);
             $zone = $this->get_pathao_zone();
             $area = $this->get_pathao_area();
 
@@ -865,7 +864,7 @@ class OrderController extends Controller
             $html .='<td scope="row">0'. $order->user->phone.'</td>';
             $html .='<td scope="row">';
             $html .= '
-            <select class="form-control valid" required="" name="weight" id="weight" aria-required="true" aria-invalid="false">
+            <select  class="form-control valid" required="" name="weight[]" id="weight_'.$request->order_id.'" aria-required="true" aria-invalid="false" style="font-size:10px;">
             <option selected="selected">Please Select</option>
                 <option value="0.5">0.5 KG</option>
                 <option value="1">1 KG</option>
@@ -883,7 +882,7 @@ class OrderController extends Controller
 
             $html .='</td>';
             $html .='<td scope="row">
-                <select class="form-control" name="city" id="city_id">';
+                <select class="form-control" name="city[]" id="city_id_'.$request->order_id.'" style="font-size:10px;">';
                 foreach($result_city->data->data as $key => $item){
                     $html .= '<option value="'.$item->city_id.'" >'.$item->city_name.'</option>';
                 }
@@ -891,7 +890,7 @@ class OrderController extends Controller
             $html .=' </select></td>';
 
             $html .='<td scope="row">
-                <select class="form-control" name="zone" id="zone_id" onchange="getPrice()">';
+                <select class="form-control" name="zone[]" id="zone_id_'.$request->order_id.'" orderNumber="'.$request->order_id.'" onchange="getPrice('.$request->order_id.')" style="font-size:10px;">';
                 foreach($zone->data->data as $key => $item){
                     $html .= '<option value="'.$item->zone_id.'" >'.$item->zone_name.'</option>';
                 }
@@ -899,19 +898,21 @@ class OrderController extends Controller
             $html .=' </select></td>';
 
             $html .='<td scope="row">
-                <select class="form-control" name="area" id="area_id">';
+                <select class="form-control" name="area[]" id="area_id_'.$request->order_id.'" style="font-size:10px;">';
                 foreach($area->data->data as $key => $item){
                     $html .= '<option value="'.$item->area_id.'" >'.$item->area_name.'</option>';
                 }
 
             $html .=' </select></td>';
-
-            $html .=' <td scope="row" class="text-right">TK. <span id="single_price'.$unique_num.'">';
+            $html .=' <td scope="row" class="text-right">TK. <span class="single_price_'.$request->order_id.'" id="single_price">';
             $html .= 0;
-            $html .='</span> <input type="text" name="single_price" value=""></td>';
+            $html .='</span> <input type="hidden" class="prices" name="single_price[]" id="single_price_'.$request->order_id.'" ></td>';
 
 
-            $html .='<td scope="row" class="text-center">'.$order->orderDetails->sum('quantity').'</td>';
+            $html .='<td scope="row" class="text-center">';
+            $html .= $order->orderDetails->sum('quantity');
+            $html .= '<input type="hidden" name="item[]" value="'.$order->orderDetails->sum('quantity').'">';
+            $html .='</td>';
             $html .= '</tr>';
 
             return $html;
@@ -923,9 +924,12 @@ class OrderController extends Controller
 
      public function get_pathao_price(Request $request)
     {
-        $service_charge = $this->get_pathao_service_charge($request->weight, $request->recipient_city, $request->recipient_zone);
+        $order = Order::where('code', $request->order_id)->first();
+        $product_price = $order->grand_total;
 
-        return $service_charge;
+        $service_charge = $this->get_pathao_service_charge($request->weight, $request->recipient_city, $request->recipient_zone);
+        $total_price = floatval($service_charge->data->price + $product_price);
+        return ['product_price'=>$product_price, 'service_charge'=>$service_charge, 'total_price'=>$total_price];
     }
 
      //End

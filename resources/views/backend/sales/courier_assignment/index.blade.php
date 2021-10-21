@@ -1,4 +1,4 @@
-@extends('backend.layouts.app')
+Invoice No.@extends('backend.layouts.app')
 
 <style>
 table {
@@ -53,6 +53,7 @@ tr:nth-child(even) {
                                     <th>Courier</th>
                                     <th>Total Items</th>
                                     <th>Amount</th>
+                                    <th>Total Parcel</th>
                                     <th>Created By</th>
                                     <th>Additional Note</th>
                                     <th>Action </th>
@@ -60,65 +61,90 @@ tr:nth-child(even) {
                             </thead>
 
                             <tbody id="myTable">
+                                @forelse($courier_assigned as $key => $item)
                                 <tr>
-                                    <td>01-07-2021</td>
-                                    <td>Doe</td>
-                                    <td>Pathao</td>
-                                    <td>3</td>
-                                    <td>1250</td>
-                                    <td>name</td>
-                                    <td>Null</td>
+                                    <td>{{ date('d-m-Y', strtotime($item->date)) }}</td>
+                                    <td>{{ $item->pay_ref_number }}</td>
+                                    <td>{{ Str::ucfirst($item->courier_id) }}</td>
+                                    <td>{{ $item->total_item }}</td>
+                                    <td>{{ $item->total_cost }}</td>
+                                    <td>{{ $item->total_parcel }}</td>
+                                    <td>{{ $item->create_by->name }}</td>
+                                    <td>
+                                        @if($item->additional_note != NULL)
+                                            {{ $item->additional_note }}
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
                                     <td>
                                         <h5 class="mb-0">
-                                        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo<?= $key; ?>" aria-expanded="false" aria-controls="collapseTwo<?= $key; ?>">
                                         <i class="fa fa-eye" aria-hidden="true"></i>
                                         </button>
                                         </h5>
 
                                     </td>
                                 </tr>
+
+                                {{-- Start Toggle --}}
+                                <tr>
+                                    <td colspan="9">
+
+                                        <div id="accordion<?= $key; ?>">
+                                            <div id="collapseTwo<?= $key; ?>" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion<?= $key; ?>">
+                                            <div class="card-body">
+                                                <table class="table table_color">
+                                                    <thead>
+                                                    <tr>
+                                                        <th scope="col">Invoice No</th>
+                                                        <th scope="col">Customer</th>
+                                                        <th scope="col">Address	</th>
+                                                        <th scope="col">Mobile</th>
+                                                        <th scope="col">Amount</th>
+                                                        <th scope="col">Total items</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($item->courier_assigned_product as $key => $product)
+
+                                                        @php
+                                                            $customer = \App\User::where('id', $product->customer_id)->first();
+                                                        @endphp
+
+                                                            <tr>
+                                                                <th scope="row">{{ $product->invoice_no }}</th>
+                                                                <td>{{ $customer->name }}</td>
+                                                                <td>
+                                                                    @if($customer->address != NULL)
+                                                                        {{ $customer->address }}
+                                                                    @else
+                                                                        -
+                                                                    @endif
+                                                                </td>
+                                                                <td>{{ $customer->phone }}</td>
+                                                                <td>{{ $product->cost }}</td>
+                                                                <td>{{ $product->item }}</td>
+                                                            </tr>
+                                                        @endforeach
+
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            </div>
+                                        </div>
+
+                                    </td>
+                                </tr>
+                                {{-- End Toggle --}}
+                                @empty
+                                    No Data Found!
+
+                                @endforelse
                             </tbody>
                         </table>
 
-                        <div id="accordion">
-                            <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
-                            <div class="card-body">
-                                <table class="table table_color">
-                                    <thead>
-                                    <tr>
-                                        <th scope="col">Invoice No</th>
-                                        <th scope="col">Customer</th>
-                                        <th scope="col">Address	</th>
-                                        <th scope="col">Mobile</th>
-                                        <th scope="col">Amount</th>
-                                        <th scope="col">Total items</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr>
-                                        <th scope="row">1234565</th>
-                                        <td>Customer name</td>
-                                        <td>Address</td>
-                                        <td>01843736673</td>
-                                        <td>1220</td>
-                                        <td>2</td>
 
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">1234565</th>
-                                        <td>Customer name</td>
-                                        <td>Address</td>
-                                        <td>01843736673</td>
-                                        <td>1220</td>
-                                        <td>2</td>
-                                    </tr>
-
-
-                                    </tbody>
-                                </table>
-                            </div>
-                            </div>
-                        </div>
 
                 </div><!--End Card Body-->
 
