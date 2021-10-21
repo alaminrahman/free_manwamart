@@ -289,5 +289,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function(
     Route::get('/create-courier', 'OrderController@create_courier')->name('create.courier');
     Route::get('getOrder', 'OrderController@getOrder')->name('getOrder');
     Route::get('getPrice', 'OrderController@get_pathao_price')->name('getPrice');
+    //Courier Assign Store
+    Route::post('courier/assined/store', 'CourierAssignedController@courier_assined_store')->name('courier.assined.store');
 
 });

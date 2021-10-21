@@ -124,7 +124,7 @@ class OrderController extends Controller
         $sort_search = null;
         $admin_user_id = User::where('user_type', 'admin')->first()->id;
         $orders = Order::orderBy('id', 'desc')
-                        ->where('seller_id', $admin_user_id);
+            ->where('seller_id', $admin_user_id);
 
         if ($request->payment_type != null) {
             $orders = $orders->where('payment_status', $request->payment_type);
@@ -753,10 +753,10 @@ class OrderController extends Controller
     public function courier_index(){
         $courier = Courier::latest()->paginate(5);
         return view('backend.sales.courier.index',compact('courier'));
-     }//courier function end
+    }//courier function end
 
 
-     public function courierStore(Request $request){
+    public function courierStore(Request $request){
         $request->validate([
             'name'=>'required',
         ]);
@@ -765,7 +765,7 @@ class OrderController extends Controller
             'message'=>'Courier Inserted Successfully',
             'alert-type'=>'success'
         );
-         return redirect()->back()->with($notification);
+        return redirect()->back()->with($notification);
 
     }
     public function courierdDelete($id){
@@ -780,23 +780,23 @@ class OrderController extends Controller
 
     public function courier_assignment_index(){
 
-     return view('backend.sales.courier_assignment.index');
+        return view('backend.sales.courier_assignment.index');
 
-     }//end method
+    }//end method
 
     public function courier_assignment_create(){
         $courier = DB::table('couriers')->get();
 
         return view('backend.sales.courier_assignment.create',compact('courier'));
-        }//end method
+    }//end method
 
     public function search(Request $request){
 
         if($request->order > 0) {
 
             $data = Order::where('code', 'LIKE', $request->order.'%')
-                    ->orderby('id','desc')
-                    ->get();
+                ->orderby('id','desc')
+                ->get();
             $output = '';
 
             if (count($data)>0) {
@@ -811,40 +811,25 @@ class OrderController extends Controller
             }
             return $output;
         }
-     }
+    }
 
 
     public function addsell_index(){
         return view('backend.sales.add_sell.index');
-     }//add sell function end
+    }//add sell function end
 
-     public function create_courier(){
+    public function create_courier(){
         return view('backend.sales.courier.create');
-     }//create courier function end
+    }//create courier function end
 
-     public function getOrder(Request $request)
-     {
-
-//        if($request->unique_num === 1){
-//            $unique_num = $request->unique_num;
-//        }else{
-//            session()->put('num', 1);
-//            $unique_num = session()->get('num');
-//
-//            for($i = 0; $i <= $unique_num; $i++){
-//                $unique_num += 1;
-//                //dd($unique_num);
-//            }
-//            // dd($unique_num);
-//        }
-//
-
+    public function getOrder(Request $request)
+    {
 
         $order = Order::with(['user', 'orderDetails'])->where('code', $request->order_id)->first();
 
         if($request->courier_name){
 
-            $result_city = $this->get_pathao_city();
+            $result_city = $this->get_pathao_city(1);
             $zone = $this->get_pathao_zone();
             $area = $this->get_pathao_area();
 
@@ -866,7 +851,7 @@ class OrderController extends Controller
             $html .='<td scope="row">0'. $order->user->phone.'</td>';
             $html .='<td scope="row">';
             $html .= '
-            <select  class="form-control valid" required="" name="weight" id="weight_'.$request->order_id.'" aria-required="true" aria-invalid="false">
+            <select  class="form-control valid" required="" name="weight[]" id="weight_'.$request->order_id.'" aria-required="true" aria-invalid="false">
             <option selected="selected">Please Select</option>
                 <option value="0.5">0.5 KG</option>
                 <option value="1">1 KG</option>
@@ -884,31 +869,32 @@ class OrderController extends Controller
 
             $html .='</td>';
             $html .='<td scope="row">
-                <select class="form-control" name="city" id="city_id_'.$request->order_id.'">';
-                foreach($result_city->data->data as $key => $item){
-                    $html .= '<option value="'.$item->city_id.'" >'.$item->city_name.'</option>';
-                }
+                <select class="form-control" name="city[]" id="city_id_'.$request->order_id.'">';
+            foreach($result_city->data->data as $key => $item){
+                $html .= '<option value="'.$item->city_id.'" >'.$item->city_name.'</option>';
+            }
 
             $html .=' </select></td>';
 
             $html .='<td scope="row">
-                <select class="form-control" name="zone" id="zone_id_'.$request->order_id.'" orderNumber="'.$request->order_id.'" onchange="getPrice('.$request->order_id.')">';
-                foreach($zone->data->data as $key => $item){
-                    $html .= '<option value="'.$item->zone_id.'" >'.$item->zone_name.'</option>';
-                }
+                <select class="form-control" name="zone[]" id="zone_id_'.$request->order_id.'" orderNumber="'.$request->order_id.'" onchange="getPrice('.$request->order_id.')">';
+            foreach($zone->data->data as $key => $item){
+                $html .= '<option value="'.$item->zone_id.'" >'.$item->zone_name.'</option>';
+            }
 
             $html .=' </select></td>';
 
             $html .='<td scope="row">
-                <select class="form-control" name="area" id="area_id_'.$request->order_id.'">';
-                foreach($area->data->data as $key => $item){
-                    $html .= '<option value="'.$item->area_id.'" >'.$item->area_name.'</option>';
-                }
+                <select class="form-control" name="area[]" id="area_id_'.$request->order_id.'">';
+            foreach($area->data->data as $key => $item){
+                $html .= '<option value="'.$item->area_id.'" >'.$item->area_name.'</option>';
+            }
 
             $html .=' </select></td>';
-            $html .=' <td scope="row" class="text-right">TK. <span id="single_price">';
+            $html .=' <td scope="row" class="text-right">TK. <span class="single_price_'.$request->order_id.'" id="single_price">';
             $html .= 0;
-            $html .='</span> <input type="text" name="single_price_'.$request->order_id.'" id="single_price_'.$request->order_id.'" ></td>';
+            $html .='</span> <input type="text" name="single_price[]" class="prices"
+ id="single_price_'.$request->order_id.'" ></td>';
 
 
             $html .='<td scope="row" class="text-center">'.$order->orderDetails->sum('quantity').'</td>';
@@ -918,15 +904,18 @@ class OrderController extends Controller
 
         }
 
-     }
-
-
-     public function get_pathao_price(Request $request)
-    {
-        $service_charge = $this->get_pathao_service_charge($request->weight, $request->recipient_city, $request->recipient_zone);
-//dd($service_charge);
-        return $service_charge;
     }
 
-     //End
+
+    public function get_pathao_price(Request $request)
+    {
+        $order = Order::where('code', $request->order_id)->first();
+        $product_price = $order->grand_total;
+
+        $service_charge = $this->get_pathao_service_charge($request->weight, $request->recipient_city, $request->recipient_zone);
+        $total_price = floatval($service_charge->data->price + $product_price);
+        return ['product_price'=>$product_price, 'service_charge'=>$service_charge, 'total_price'=>$total_price];
+    }
+
+    //End
 }
