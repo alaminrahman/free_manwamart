@@ -287,7 +287,11 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function(
 
     Route::get('/add-sell', 'OrderController@addsell_index')->name('addsell.index');
     Route::get('/create-courier', 'OrderController@create_courier')->name('create.courier');
+
+    //Assigned Courier Product
     Route::get('getOrder', 'OrderController@getOrder')->name('getOrder');
+    Route::get('getZone', 'OrderController@getZone')->name('getZone');
+    Route::get('getArea', 'OrderController@getArea')->name('getArea');
     Route::get('getPrice', 'OrderController@get_pathao_price')->name('getPrice');
     //Courier Assign Store
     Route::post('courier/assined/store', 'CourierAssignedController@courier_assined_store')->name('courier.assined.store');

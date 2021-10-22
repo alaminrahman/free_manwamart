@@ -197,18 +197,12 @@
                 type:"GET",
                 data:{'order':query},
                 success:function (data) {
-
                     $('#order_list').html(data);
-
                     console.log(data)
-
                 }
             })
             // end of ajax call
         });
-
-
-
     });
 
     function clearSearResultItem(){
@@ -254,7 +248,46 @@
             }
         }
 
+    function getZone(order_id){
+        var order_id = order_id;
+        var city_id = $('#city_id_'+order_id).val();
 
+        $.ajax({
+            url:'{{ route("getZone") }}',
+            data:{
+                city_id: city_id,
+            },
+            success:function(data){
+                $('#zone_id_'+order_id).html(data)
+                console.log('Zone Found!')
+            },
+            error:function(){
+                console.log('No Zone Found!')
+            }
+        });
+
+    }
+
+    function getArea(order_id){
+
+        var order_id = order_id;
+        var zone_id = $('#zone_id_'+order_id).val();
+
+        $.ajax({
+            url:'{{ route("getArea") }}',
+            data:{
+                zone_id: zone_id,
+            },
+            success:function(data){
+                $('#area_id_'+order_id).html(data)
+                console.log('Area Found!')
+            },
+            error:function(){
+                console.log('No Area Found!')
+            }
+        });
+
+    }
 
 
 

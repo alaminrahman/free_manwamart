@@ -843,8 +843,6 @@ class OrderController extends Controller
         if($request->courier_name){
 
             $result_city = $this->get_pathao_city(1);
-            $zone = $this->get_pathao_zone();
-            $area = $this->get_pathao_area();
 
             $html = '';
 
@@ -882,7 +880,7 @@ class OrderController extends Controller
 
             $html .='</td>';
             $html .='<td scope="row">
-                <select class="form-control" name="city[]" id="city_id_'.$request->order_id.'" style="font-size:10px;">';
+                <select class="form-control" name="city[]" id="city_id_'.$request->order_id.'" onchange="getZone('.$request->order_id.')" style="font-size:10px;">';
                 foreach($result_city->data->data as $key => $item){
                     $html .= '<option value="'.$item->city_id.'" >'.$item->city_name.'</option>';
                 }
@@ -890,18 +888,13 @@ class OrderController extends Controller
             $html .=' </select></td>';
 
             $html .='<td scope="row">
-                <select class="form-control" name="zone[]" id="zone_id_'.$request->order_id.'" orderNumber="'.$request->order_id.'" onchange="getPrice('.$request->order_id.')" style="font-size:10px;">';
-                foreach($zone->data->data as $key => $item){
-                    $html .= '<option value="'.$item->zone_id.'" >'.$item->zone_name.'</option>';
-                }
-
+                <select class="form-control" name="zone[]" id="zone_id_'.$request->order_id.'" orderNumber="'.$request->order_id.'" onchange="getArea('.$request->order_id.')"  style="font-size:10px;">';
+            $html .= '<option value="">Choose One</option>';
             $html .=' </select></td>';
 
             $html .='<td scope="row">
-                <select class="form-control" name="area[]" id="area_id_'.$request->order_id.'" style="font-size:10px;">';
-                foreach($area->data->data as $key => $item){
-                    $html .= '<option value="'.$item->area_id.'" >'.$item->area_name.'</option>';
-                }
+                <select class="form-control" name="area[]" id="area_id_'.$request->order_id.'" onchange="getPrice('.$request->order_id.')" style="font-size:10px;">';
+            $html .= '<option value="">Choose One</option>';
 
             $html .=' </select></td>';
             $html .=' <td scope="row" class="text-right">TK. <span class="single_price_'.$request->order_id.'" id="single_price">';
@@ -930,6 +923,32 @@ class OrderController extends Controller
         $service_charge = $this->get_pathao_service_charge($request->weight, $request->recipient_city, $request->recipient_zone);
         $total_price = floatval($service_charge->data->price + $product_price);
         return ['product_price'=>$product_price, 'service_charge'=>$service_charge, 'total_price'=>$total_price];
+    }
+
+    public function getZone(Request $request)
+    {
+        $city_id = $request->city_id;
+        $zone = $this->get_pathao_zone($city_id);
+
+        $html = '';
+        foreach($zone->data->data as $key => $item){
+            $html .= '<option value="'.$item->zone_id.'" >'.$item->zone_name.'</option>';
+        }
+
+        return $html;
+    }
+
+    public function getArea(Request $request)
+    {
+        $zone_id = $request->zone_id;
+        $area = $this->get_pathao_area($zone_id);
+
+        $html = '';
+        foreach($area->data->data as $key => $item){
+            $html .= '<option value="'.$item->area_id.'" >'.$item->area_name.'</option>';
+        }
+
+        return $html;
     }
 
      //End

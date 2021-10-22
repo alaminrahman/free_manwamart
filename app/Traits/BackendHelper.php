@@ -71,7 +71,7 @@ trait BackendHelper{
         // End Get City
     }
 
-    public function get_pathao_zone()
+    public function get_pathao_zone($city_id)
     {
         $curl = curl_init();
         $token_postdata = [
@@ -83,7 +83,7 @@ trait BackendHelper{
         ];
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => "https://api-hermes.pathaointernal.com/aladdin/api/v1/cities/1/zone-list",
+            CURLOPT_URL => "https://api-hermes.pathaointernal.com/aladdin/api/v1/cities/$city_id/zone-list",
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
             CURLOPT_MAXREDIRS => 10,
@@ -104,7 +104,7 @@ trait BackendHelper{
         // End Get City
     }
 
-    public function get_pathao_area()
+    public function get_pathao_area($zone_id)
     {
         $curl = curl_init();
         $token_postdata = [
@@ -116,7 +116,7 @@ trait BackendHelper{
         ];
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => "https://api-hermes.pathaointernal.com/aladdin/api/v1/zones/1/area-list",
+            CURLOPT_URL => "https://api-hermes.pathaointernal.com/aladdin/api/v1/zones/$zone_id/area-list",
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
             CURLOPT_MAXREDIRS => 10,
