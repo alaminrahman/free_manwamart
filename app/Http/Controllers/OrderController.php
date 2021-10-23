@@ -782,8 +782,6 @@ class OrderController extends Controller
 
     public function courier_assignment_index(){
         $data['courier_assigned'] = CourierAssigned::with(['courier_assigned_product', 'create_by'])->latest()->get();
-        // dd( $data['courier_assigned']);
-        // CourierAssignedProduct
         return view('backend.sales.courier_assignment.index', $data);
 
      }//end method
@@ -795,11 +793,7 @@ class OrderController extends Controller
         }//end method
 
     public function search(Request $request){
-
-
-
         if($request->order > 0) {
-
             $data = Order::where('code', 'LIKE', $request->order.'%')
                     ->orderby('id','desc')
                     ->get();
@@ -827,9 +821,6 @@ class OrderController extends Controller
      }
 
 
-    public function addsell_index(){
-        return view('backend.sales.add_sell.index');
-     }//add sell function end
 
      public function create_courier(){
         return view('backend.sales.courier.create');

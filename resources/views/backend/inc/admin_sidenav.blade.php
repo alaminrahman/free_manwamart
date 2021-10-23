@@ -221,14 +221,16 @@
                                 <span class="aiz-side-nav-text">{{translate('Courier Assignment')}}</span>
                             </a>
                         </li>
-                    @endif 
+                    @endif
+
                     @if(Auth::user()->user_type == 'admin' || in_array('9', json_decode(Auth::user()->staff->role->permissions)))
                         <li class="aiz-side-nav-item">
                             <a href="{{ route('addsell.index') }}" class="aiz-side-nav-link {{ areActiveRoutes(['addsell.index'])}}">
                                 <span class="aiz-side-nav-text">{{translate('Add Sale')}}</span>
                             </a>
                         </li>
-                    @endif           
+                    @endif
+                               
                     </ul>
                 </li>
 

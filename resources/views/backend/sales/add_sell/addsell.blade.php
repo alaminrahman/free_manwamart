@@ -3,7 +3,7 @@
 @section('content')
 <div class="add-sell mb-2" style="border-bottom:3px solid #ac8bce"><h4>Add Sale</h4></div>
 <section class="">
-    <form class="" action="" method="POST" enctype="multipart/form-data">
+    <form class="" action="{{ route('addsell_store') }}" method="POST" enctype="multipart/form-data">
         @csrf
  
         <div class="row gutters-5">

@@ -285,7 +285,13 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function(
     Route::get('/courier-order-search', 'OrderController@search')->name('search.order');
     Route::get('/courier-assignment-create', 'OrderController@courier_assignment_create')->name('courier.assignment_create');
 
-    Route::get('/add-sell', 'OrderController@addsell_index')->name('addsell.index');
+    //Add Sell Store
+    Route::get('/add-sell', 'AddsellController@addsell_index')->name('addsell.index');
+    Route::get('getProduct', 'AddsellController@get_product')->name('getProduct');
+    Route::post('/addsell/store', 'AddsellController@addsell_index')->name('addsell_store');
+
+
+
     Route::get('/create-courier', 'OrderController@create_courier')->name('create.courier');
 
     //Assigned Courier Product
@@ -295,5 +301,8 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function(
     Route::get('getPrice', 'OrderController@get_pathao_price')->name('getPrice');
     //Courier Assign Store
     Route::post('courier/assined/store', 'CourierAssignedController@courier_assined_store')->name('courier.assined.store');
+
+
+
 
 });
