@@ -138,7 +138,9 @@ tr:nth-child(even) {
                                 </tr>
                                 {{-- End Toggle --}}
                                 @empty
-                                    No Data Found!
+                                    <tr>
+                                        <td colspan="9" class="text-center">No Data Found!</td>
+                                    </tr>
 
                                 @endforelse
                             </tbody>

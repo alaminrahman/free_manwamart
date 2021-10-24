@@ -805,11 +805,13 @@ class OrderController extends Controller
                 foreach ($data as $row){
                     if($row->is_courier_assigned ==1){
                         $msg = "Already Assigned";
+                        $condition = 'onclick="errorMsg(\'Already Assinged\')"';
                     }else{
                         $msg = "New";
+                        $condition = 'onclick="getOrder('.$row->code.')"';
                     }
 
-                    $output .= '<li class="list-group-item"  onclick="getOrder('.$row->code.')" >'.$row->code.'('.$msg.')</li>';
+                    $output .= '<li class="list-group-item" '.$condition.' >'.$row->code.'('.$msg.')</li>';
                 }
                 $output .= '</ul>';
             }
@@ -831,7 +833,7 @@ class OrderController extends Controller
 
         $order = Order::with(['user', 'orderDetails'])->where('code', $request->order_id)->first();
 
-        if($request->courier_name){
+        if($request->courier_name == 'pathao'){
 
             $result_city = $this->get_pathao_city(1);
 
@@ -899,10 +901,144 @@ class OrderController extends Controller
             $html .='</td>';
             $html .= '</tr>';
 
-            return $html;
+
+        }else if($request->courier_name == 'self' || $request->courier_name == 'demo'){
+            $result_city = $this->get_pathao_city(1);
+
+            $html = '';
+
+            $html .= '<tr>';
+
+            $html .= '<td scope="row">';
+            $html .= $order->code;
+            $html .= '<input type="hidden" name="order_code[]" value="'.$order->code.'">';
+            $html .= '</td>';
+
+            $html .='<td scope="row">';
+            $html .= $order->user->name;
+            $html .='<input type="hidden" name="customer_id[]" value="'.$order->user->id.'">';
+            $html .='</td>';
+
+            $html .=' <td scope="row">'.$order->user->address .'</td>';
+            $html .='<td scope="row">0'. $order->user->phone.'</td>';
+            $html .='<td scope="row">';
+            $html .= '
+            <select  class="form-control valid" required="" name="weight[]" id="weight_'.$request->order_id.'" aria-required="true" aria-invalid="false" style="font-size:10px;">
+            <option selected="selected">Please Select</option>
+                <option value="0.5">0.5 KG</option>
+                <option value="1">1 KG</option>
+                <option value="2">2 KG</option>
+                <option value="3">3 KG</option>
+                <option value="4">4 KG</option>
+                <option value="5">5 KG</option>
+                <option value="6">6 KG</option>
+                <option value="7">7 KG</option>
+                <option value="8">8 KG</option>
+                <option value="9">9 KG</option>
+                <option value="10">10 KG</option>
+        </select>
+            ';
+
+            $html .='</td>';
+            $html .='<td scope="row">
+                <select class="form-control" name="city[]" id="city_id_'.$request->order_id.'" onchange="getZone('.$request->order_id.')" style="font-size:10px;">';
+                foreach($result_city->data->data as $key => $item){
+                    $html .= '<option value="'.$item->city_id.'" >'.$item->city_name.'</option>';
+                }
+
+            $html .=' </select></td>';
+
+            $html .='<td scope="row">
+                <select class="form-control" name="zone[]" id="zone_id_'.$request->order_id.'" orderNumber="'.$request->order_id.'" onchange="getArea('.$request->order_id.')"  style="font-size:10px;">';
+            $html .= '<option value="">Choose One</option>';
+            $html .=' </select></td>';
+
+            $html .='<td scope="row">
+                <select class="form-control" name="area[]" id="area_id_'.$request->order_id.'" onchange="getPrice('.$request->order_id.')" style="font-size:10px;">';
+            $html .= '<option value="">Choose One</option>';
+
+            $html .=' </select></td>';
+            $html .=' <td scope="row" class="text-right">TK. <span class="single_price_'.$request->order_id.'" id="single_price">';
+            $html .= 0;
+            $html .='</span> <input type="hidden" class="prices" name="single_price[]" id="single_price_'.$request->order_id.'" ></td>';
+
+
+            $html .='<td scope="row" class="text-center">';
+            $html .= $order->orderDetails->sum('quantity');
+            $html .= '<input type="hidden" name="item[]" value="'.$order->orderDetails->sum('quantity').'">';
+            $html .='</td>';
+            $html .= '</tr>';
+        }else if($request->courier_name != ''){
+            $result_city = $this->get_pathao_city(1);
+
+            $html = '';
+
+            $html .= '<tr>';
+
+            $html .= '<td scope="row">';
+            $html .= $order->code;
+            $html .= '<input type="hidden" name="order_code[]" value="'.$order->code.'">';
+            $html .= '</td>';
+
+            $html .='<td scope="row">';
+            $html .= $order->user->name;
+            $html .='<input type="hidden" name="customer_id[]" value="'.$order->user->id.'">';
+            $html .='</td>';
+
+            $html .=' <td scope="row">'.$order->user->address .'</td>';
+            $html .='<td scope="row">0'. $order->user->phone.'</td>';
+            $html .='<td scope="row">';
+            $html .= '
+            <select  class="form-control valid" required="" name="weight[]" id="weight_'.$request->order_id.'" aria-required="true" aria-invalid="false" style="font-size:10px;">
+            <option selected="selected">Please Select</option>
+                <option value="0.5">0.5 KG</option>
+                <option value="1">1 KG</option>
+                <option value="2">2 KG</option>
+                <option value="3">3 KG</option>
+                <option value="4">4 KG</option>
+                <option value="5">5 KG</option>
+                <option value="6">6 KG</option>
+                <option value="7">7 KG</option>
+                <option value="8">8 KG</option>
+                <option value="9">9 KG</option>
+                <option value="10">10 KG</option>
+        </select>
+            ';
+
+            $html .='</td>';
+            $html .='<td scope="row">
+                <select class="form-control" name="city[]" id="city_id_'.$request->order_id.'" onchange="getZone('.$request->order_id.')" style="font-size:10px;">';
+                foreach($result_city->data->data as $key => $item){
+                    $html .= '<option value="'.$item->city_id.'" >'.$item->city_name.'</option>';
+                }
+
+            $html .=' </select></td>';
+
+            $html .='<td scope="row">
+                <select class="form-control" name="zone[]" id="zone_id_'.$request->order_id.'" orderNumber="'.$request->order_id.'" onchange="getArea('.$request->order_id.')"  style="font-size:10px;">';
+            $html .= '<option value="">Choose One</option>';
+            $html .=' </select></td>';
+
+            $html .='<td scope="row">
+                <select class="form-control" name="area[]" id="area_id_'.$request->order_id.'" onchange="getPrice('.$request->order_id.')" style="font-size:10px;">';
+            $html .= '<option value="">Choose One</option>';
+
+            $html .=' </select></td>';
+            $html .=' <td scope="row" class="text-right">TK. <span class="single_price_'.$request->order_id.'" id="single_price">';
+            $html .= 0;
+            $html .='</span> <input type="hidden" class="prices" name="single_price[]" id="single_price_'.$request->order_id.'" ></td>';
+
+
+            $html .='<td scope="row" class="text-center">';
+            $html .= $order->orderDetails->sum('quantity');
+            $html .= '<input type="hidden" name="item[]" value="'.$order->orderDetails->sum('quantity').'">';
+            $html .='</td>';
+            $html .= '</tr>';
 
         }
+        return $html;
 
+        //End Function
      }
 
 

@@ -25,12 +25,7 @@ class CourierAssignedController extends Controller
 
         $courier_assigned = CourierAssigned::latest()->first();
 
-        $order = Order::where('code', $request->order_code)->first();
-        $order->is_courier_assigned = 1;
-        $order->save();
-
         $courier_assigned_product = new CourierAssignedProduct;
-
         $courier_assigned_id = $courier_assigned->id;
         $invoice_no = $request->order_code;
         $customer_id = $request->customer_id;
@@ -52,7 +47,9 @@ class CourierAssignedController extends Controller
                 'area_id' => $area_id[$i],
             ];
             CourierAssignedProduct::insert($data);
+
         }
+        Order::whereIn('code', $request->order_code)->update(['is_courier_assigned' => 1]);
 
         flash(translate('Assign successfull!'))->success();
         return redirect()->route('courier.assignment_index');

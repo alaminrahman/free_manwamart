@@ -49,7 +49,7 @@
                             <div class="form-group">
                                 <label for="exampleFormControlInput1"><b>Courier:*</b></label>
                                 <select class="form-control valid" required="" name="courier" id="courier" aria-required="true" aria-invalid="false">
-                                    <option selected="selected">Please Select</option>
+                                        <option value="">Please Select</option>
                                         @foreach ($courier as $item)
                                         <option value="{{ $item->name }}">{{ Str::ucfirst($item->name) }}</option>
                                         @endforeach
@@ -94,7 +94,7 @@
                     <div class="row">
                         <div class="col-md-12">
 
-                            <table class="table" style="font-size: 10px !important;">
+                            <table class="table" style="font-size: 14px !important;">
                                 <thead>
                                   <tr>
                                     <th scope="col">Invoice No.</th>
@@ -131,17 +131,17 @@
 
                                         <div class="col-md-12">
                                             <p>Total Amount: TK. <span style="margin-left: 1rem;" id="total_cost_show">0</span></p>
-                                            <input type="hidden" name="total_cost" id="total_cost" value="">
+                                            <input type="hidden" name="total_cost" id="total_cost" value="1">
                                         </div>
 
                                         <div class="col-md-12">
                                             <p>Total parcel:<span style="margin-left: 1rem;" id="total_parcel_show">0</span></p>
-                                            <input type="hidden" name="total_parcel" id="total_parcel" value="">
+                                            <input type="hidden" name="total_parcel" id="total_parcel" value="1">
                                         </div>
 
                                         <div class="col-md-12">
                                             <p>Total items:<span style="margin-left: 1rem;" id="total_item_show">0</span></p>
-                                            <input type="hidden" name="total_item" id="total_item" value="">
+                                            <input type="hidden" name="total_item" id="total_item" value="1">
                                         </div>
                                     </div>
                                 </div>
@@ -212,6 +212,9 @@
     function clearSearchKeyword(){
         $('#order').val('');
     }
+    function errorMsg(errorMsg){
+        alert(errorMsg)
+    }
 
 
         function getOrder(order_id){
@@ -242,6 +245,51 @@
                         console.log('Data not Found!')
                     }
                 })
+
+            }else if(courier_name == 'self' || courier_name == 'demo'){
+                $.ajax({
+                    url:'{{ route("getOrder") }}',
+                    data:{
+                        order_id: order_id,
+                        courier_name:courier_name,
+                        unique_num: unique_num,
+
+                    },
+                    success:function(data){
+
+                        $('#show').append(data);
+                        console.log('Data Found!')
+
+                        clearSearResultItem();
+                        clearSearchKeyword();
+                    },
+                    error:function(){
+                        console.log('Data not Found!')
+                    }
+                })
+
+            }else if(courier_name != ''){
+                $.ajax({
+                    url:'{{ route("getOrder") }}',
+                    data:{
+                        order_id: order_id,
+                        courier_name:courier_name,
+                        unique_num: unique_num,
+
+                    },
+                    success:function(data){
+
+                        $('#show').append(data);
+                        console.log('Data Found!')
+
+                        clearSearResultItem();
+                        clearSearchKeyword();
+                    },
+                    error:function(){
+                        console.log('Data not Found!')
+                    }
+                })
+
 
             }else{
                 alert('Please Select One Courier Services!');
