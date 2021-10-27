@@ -21,14 +21,14 @@
                 <div class="col-md-3 ml-auto">
                     <label for="assign_deliver_boy">{{translate('Assign Deliver Boy')}}</label>
                     @if($delivery_status == 'pending' || $delivery_status == 'confirmed' || $delivery_status == 'picked_up')
-                    <select class="form-control aiz-selectpicker" data-live-search="true" data-minimum-results-for-search="Infinity" id="assign_deliver_boy">
+                    {{-- <select class="form-control aiz-selectpicker" data-live-search="true" data-minimum-results-for-search="Infinity" id="assign_deliver_boy">
                         <option value="">{{translate('Select Delivery Boy')}}</option>
                         @foreach($delivery_boys as $delivery_boy)
                         <option value="{{ $delivery_boy->id }}" @if($order->assign_delivery_boy == $delivery_boy->id) selected @endif>
                             {{ $delivery_boy->name }}
                         </option>
                         @endforeach
-                    </select>
+                    </select> --}}
                     @else
                         <input type="text" class="form-control" value="{{ optional($order->delivery_boy)->name }}" disabled>
                     @endif
@@ -60,13 +60,13 @@
         </div>
         <div class="row gutters-5">
             <div class="col text-center text-md-left">
-                <address>
+                {{-- <address>
                     <strong class="text-main">{{ json_decode($order->shipping_address)->name }}</strong><br>
                     {{ json_decode($order->shipping_address)->email }}<br>
                     {{ json_decode($order->shipping_address)->phone }}<br>
                     {{ json_decode($order->shipping_address)->address }}, {{ json_decode($order->shipping_address)->city }}, {{ json_decode($order->shipping_address)->postal_code }}<br>
                     {{ json_decode($order->shipping_address)->country }}
-                </address>
+                </address> --}}
                 @if ($order->manual_payment && is_array(json_decode($order->manual_payment_data, true)))
                 <br>
                 <strong class="text-main">{{ translate('Payment Information') }}</strong><br>

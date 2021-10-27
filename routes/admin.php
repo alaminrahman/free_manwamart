@@ -287,10 +287,10 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function(
 
     //Add Sell Store
     Route::get('/add-sell', 'AddsellController@addsell_index')->name('addsell.index');
+    Route::get('getProductSearch', 'AddsellController@get_product_search')->name('getProductSearch');
     Route::get('getProduct', 'AddsellController@get_product')->name('getProduct');
-    Route::post('/addsell/store', 'AddsellController@addsell_index')->name('addsell_store');
-
-
+    Route::post('/addsell/store', 'AddsellController@addsell_store')->name('add_sell_store');
+    Route::get('clear_cart_item', 'AddsellController@clear_cart_item')->name('clear_cart_item');
 
     Route::get('/create-courier', 'OrderController@create_courier')->name('create.courier');
 

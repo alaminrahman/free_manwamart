@@ -55,7 +55,12 @@ class CartController extends Controller
 
     public function addToCart(Request $request)
     {
-        $product = Product::find($request->id);
+        if($request->product_id == true){
+            $product = Product::find($request->product_id);
+        }else{
+            $product = Product::find($request->id);
+        }
+
         $carts = array();
         $data = array();
 
@@ -74,8 +79,17 @@ class CartController extends Controller
             $carts = Cart::where('temp_user_id', $temp_user_id)->get();
         }
 
-        $data['product_id'] = $product->id;
-        $data['owner_id'] = $product->user_id;
+        if($request->product_id == true){
+            $data['product_id'] = $request->product_id;
+        }else{
+            $data['product_id'] = $product->id;
+        }
+
+        if($request->product_id == true){
+            $data['owner_id'] = $request->owner_id;
+        }else{
+            $data['owner_id'] = $product->user_id;
+        }
 
         $str = '';
         $tax = 0;
@@ -94,17 +108,20 @@ class CartController extends Controller
                 $str = $request['color'];
             }
 
-            if ($product->digital != 1) {
-                //Gets all the choice values of customer choice option and generate a string like Black-S-Cotton
-                foreach (json_decode(Product::find($request->id)->choice_options) as $key => $choice) {
-                    if($str != null){
-                        $str .= '-'.str_replace(' ', '', $request['attribute_id_'.$choice->attribute_id]);
-                    }
-                    else{
-                        $str .= str_replace(' ', '', $request['attribute_id_'.$choice->attribute_id]);
+            if($request->sell_type != 'sell_by_admin'){
+                if ($product->digital != 1) {
+                    //Gets all the choice values of customer choice option and generate a string like Black-S-Cotton
+                    foreach (json_decode(Product::find($request->id)->choice_options) as $key => $choice) {
+                        if($str != null){
+                            $str .= '-'.str_replace(' ', '', $request['attribute_id_'.$choice->attribute_id]);
+                        }
+                        else{
+                            $str .= str_replace(' ', '', $request['attribute_id_'.$choice->attribute_id]);
+                        }
                     }
                 }
             }
+
 
             $data['variation'] = $str;
 

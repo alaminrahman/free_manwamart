@@ -34,13 +34,21 @@ class CheckoutController extends Controller
     //check the selected payment gateway and redirect to that controller accordingly
     public function checkout(Request $request)
     {
+
         if ($request->payment_option != null) {
             $orderController = new OrderController;
+
             $orderController->store($request);
 
-            $request->session()->put('payment_type', 'cart_payment');
+            if($request->payment_option == 'admin_bkash' || $request->payment_option == 'admin_cash' || $request->payment_option == 'admin_nogad' || $request->payment_option == 'admin_sslcommerze'){
+                session()->put('payment_type', 'cart_payment');
+                return $this->order_confirmed_admin();
+            }else{
+                $request->session()->put('payment_type', 'cart_payment');
+            }
+            //$request->session()->get('combined_order_id') != null
 
-            if ($request->session()->get('combined_order_id') != null) {
+            if (session()->get('combined_order_id') != null || $request->payment_option == 'cash') {
                 if ($request->payment_option == 'paypal') {
                     $paypal = new PaypalController;
                     return $paypal->getCheckout();
@@ -394,11 +402,20 @@ class CheckoutController extends Controller
 
         //Session::forget('club_point');
         //Session::forget('combined_order_id');
-        
+
         foreach($combined_order->orders as $order){
             NotificationUtility::sendOrderPlacedNotification($order);
         }
 
         return view('frontend.order_confirmed', compact('combined_order'));
     }
+
+    public function order_confirmed_admin()
+    {
+        Cart::where('user_id', Auth::user()->id)
+                ->delete();
+        flash(translate("Your order has been placed successfully"))->success();
+    }
+
+    //End
 }

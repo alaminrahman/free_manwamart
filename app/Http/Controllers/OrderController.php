@@ -108,9 +108,11 @@ class OrderController extends Controller
     {
         $order = Order::findOrFail(decrypt($id));
         $order_shipping_address = json_decode($order->shipping_address);
-        $delivery_boys = User::where('city', $order_shipping_address->city)
-            ->where('user_type', 'delivery_boy')
-            ->get();
+        // $delivery_boys = User::where('city', $order_shipping_address->city)
+        //     ->where('user_type', 'delivery_boy')
+        //     ->get();
+
+        $delivery_boys = [];
 
         return view('backend.sales.all_orders.show', compact('order', 'delivery_boys'));
     }
@@ -308,7 +310,98 @@ class OrderController extends Controller
             return redirect()->route('home');
         }
 
+
+        if(Session::get('sell_type') == 'sell_by_admin'){
+            // dd('here');
+            $combined_order = new CombinedOrder;
+            $combined_order->user_id = Auth::user()->id;
+            // $combined_order->shipping_address = json_encode($shipping_info);
+            $combined_order->save();
+
+            $seller_products = array();
+            foreach ($carts as $cartItem){
+                $product_ids = array();
+                $product = Product::find($cartItem['product_id']);
+                if(isset($seller_products[$product->user_id])){
+                    $product_ids = $seller_products[$product->user_id];
+                }
+                array_push($product_ids, $cartItem);
+                $seller_products[$product->user_id] = $product_ids;
+            }
+
+            foreach ($seller_products as $seller_product) {
+                $order = new Order;
+                $order->combined_order_id = $combined_order->id;
+                $order->user_id = Auth::user()->id;
+                // $order->shipping_address = json_encode($shipping_info);
+
+                $order->payment_type = $request->payment_option;
+                $order->payment_status = $request->payment_status;
+                $order->delivery_viewed = '0';
+                $order->payment_status_viewed = '0';
+                $order->code = $order->user_id . rand(10000, 99999);
+                $order->date = strtotime('now');
+                $order->save();
+
+                $subtotal = 0;
+                $tax = 0;
+                $shipping = 0;
+                $coupon_discount = 0;
+
+                foreach ($seller_product as $cartItem) {
+                    $product = Product::find($cartItem['product_id']);
+
+                    $subtotal += $cartItem['price'] * $cartItem['quantity'];
+                    $tax += $cartItem['tax'] * $cartItem['quantity'];
+                    $coupon_discount += $cartItem['discount'];
+
+                    $product_variation = $cartItem['variation'];
+
+                    $product_stock = $product->stocks->where('variant', $product_variation)->first();
+                    if ($product->digital != 1 && $cartItem['quantity'] > $product_stock->qty) {
+                        flash(translate('The requested quantity is not available for ') . $product->getTranslation('name'))->warning();
+                        $order->delete();
+                        // return redirect()->route('cart')->send();
+                        return redirect()->back();
+                    } elseif ($product->digital != 1) {
+                        $product_stock->qty -= $cartItem['quantity'];
+                        $product_stock->save();
+                    }
+
+                    $order_detail = new OrderDetail;
+                    $order_detail->order_id = $order->id;
+                    $order_detail->seller_id = $product->user_id;
+                    $order_detail->product_id = $product->id;
+                    $order_detail->payment_status = $request->payment_status;
+                    $order_detail->variation = $product_variation;
+                    $order_detail->price = $cartItem['price'] * $cartItem['quantity'];
+                    $order_detail->tax = $cartItem['tax'] * $cartItem['quantity'];
+                    $order_detail->shipping_type = $cartItem['shipping_type'];
+                    $order_detail->product_referral_code = $cartItem['product_referral_code'];
+                    $order_detail->shipping_cost = $cartItem['shipping_cost'];
+
+                    $shipping += $order_detail->shipping_cost;
+
+                    if ($cartItem['shipping_type'] == 'pickup_point') {
+                        $order_detail->pickup_point_id = $cartItem['pickup_point'];
+                    }
+                    //End of storing shipping cost
+
+                    $order_detail->quantity = $cartItem['quantity'];
+                    $order_detail->save();
+
+                    $order->grand_total = $subtotal + $tax + $shipping;
+                    $order->save();
+
+            }
+        }
+
+
+    }else{
+
+
         $shipping_info = Address::where('id', $carts[0]['address_id'])->first();
+
         $shipping_info->name = Auth::user()->name;
         $shipping_info->email = Auth::user()->email;
         if ($shipping_info->latitude || $shipping_info->longitude) {
@@ -434,6 +527,11 @@ class OrderController extends Controller
         $combined_order->save();
 
         $request->session()->put('combined_order_id', $combined_order->id);
+
+
+    }
+
+
     }
 
     /**
